@@ -43,20 +43,31 @@ arrives for the node — so the trackpad stays dead for the session.
 ## Fix: load the Apple HID drivers from the initramfs
 
 `install/hardware/apple/fix-asahi-hid-race.sh` writes
-`/etc/mkinitcpio.conf.d/apple_hid_modules.conf`:
+`/etc/mkinitcpio.conf.d/apple_hid_modules.conf`, which adds both drivers to
+`MODULES` on kernels that build them as modules:
 
 ```
-MODULES+=(hid_apple hid_magicmouse)
+for _omarchy_apple_hid_module in hid_apple hid_magicmouse; do
+  modinfo -k "${KERNELVERSION:-$(uname -r)}" "$_omarchy_apple_hid_module" >/dev/null 2>&1 &&
+    MODULES+=("$_omarchy_apple_hid_module")
+done
+unset _omarchy_apple_hid_module
 ```
+
+The `modinfo` guard is not decoration: mkinitcpio fails the whole image over a
+`MODULES` entry it cannot find, so an unconditional entry would break every
+later rebuild on a kernel that ships either driver built in. Ending the file on
+`unset` keeps its exit status zero, which is how mkinitcpio decides the config
+is readable.
 
 With both drivers already registered when `dockchannel-hid` creates its HID
 devices, they bind correctly on first registration: no rebind, no device
-churn, no race. Apply it to an existing install with:
+churn, no race.
 
-```
-echo 'MODULES+=(hid_apple hid_magicmouse)' | sudo tee /etc/mkinitcpio.conf.d/apple_hid_modules.conf
-sudo mkinitcpio -P
-```
+Existing installs get the same drop-in and an initramfs rebuild from the
+migration, during `omarchy update`. The drop-in changes nothing until the
+initramfs carries it, so a hand-written one needs `sudo mkinitcpio -P` and a
+reboot to take effect.
 
 ### Recovering a live session without rebooting
 

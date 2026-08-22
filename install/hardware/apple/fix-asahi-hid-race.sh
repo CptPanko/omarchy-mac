@@ -12,6 +12,14 @@
 if [[ $(uname -m) == "aarch64" ]] && grep -qi apple /proc/device-tree/compatible 2>/dev/null; then
   echo "Detected Apple Silicon Mac: early-loading Apple HID modules"
   sudo mkdir -p /etc/mkinitcpio.conf.d
-  echo "MODULES+=(hid_apple hid_magicmouse)" | \
-    sudo tee /etc/mkinitcpio.conf.d/apple_hid_modules.conf >/dev/null
+  sudo tee /etc/mkinitcpio.conf.d/apple_hid_modules.conf >/dev/null <<'EOF'
+# mkinitcpio fails the whole image over a MODULES entry it cannot find, so name
+# each driver only on kernels that build it as a module. Ending on unset keeps
+# the exit status zero, which mkinitcpio reads as a readable config.
+for _omarchy_apple_hid_module in hid_apple hid_magicmouse; do
+  modinfo -k "${KERNELVERSION:-$(uname -r)}" "$_omarchy_apple_hid_module" >/dev/null 2>&1 &&
+    MODULES+=("$_omarchy_apple_hid_module")
+done
+unset _omarchy_apple_hid_module
+EOF
 fi
