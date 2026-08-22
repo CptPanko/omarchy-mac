@@ -1,4 +1,5 @@
-![IMG_5776](https://github.com/user-attachments/assets/86b2651c-4b49-4ec5-ae78-023b01e46a15)
+<img width="1900" height="1340" alt="image" src="https://github.com/user-attachments/assets/fdf0f748-c0b7-4fcb-a5e3-fa91ea1c877c" />
+
 
 # Omarchy Mac
 
