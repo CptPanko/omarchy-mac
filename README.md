@@ -36,7 +36,7 @@ it — but the BTRFS image already has the right shape.
 
 ### 2. Boot into Arch and get online
 
-Log in as root and connect first — everything from here starts with a download:
+Log in as root (username: `root`, password: `root`) and connect first — everything from here starts with a download:
 
 ```bash
 nmtui
