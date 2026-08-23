@@ -1,5 +1,4 @@
-<img width="1900" height="1340" alt="image" src="https://github.com/user-attachments/assets/fdf0f748-c0b7-4fcb-a5e3-fa91ea1c877c" />
-
+![Omarchy 4 on an Apple Silicon MacBook: the top bar flowing around the display notch on a fresh install](hero.jpg)
 
 # Omarchy Mac
 
