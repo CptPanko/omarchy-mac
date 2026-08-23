@@ -4,12 +4,12 @@ set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/base-test.sh"
 
-leaf="$ROOT/install/hardware/apple/asahi-audio.sh"
+leaf="$ROOT/install/hardware/apple/audio.sh"
 all="$ROOT/install/hardware/all.sh"
 migration=$(grep -rl 'Install the protected Asahi audio stack' "$ROOT/migrations" | head -n 1 || true)
 
 [[ -f $leaf ]] || fail "the Apple Silicon audio setup leaf ships"
-grep -Fq 'apple/asahi-audio.sh' "$all" ||
+grep -Fq 'apple/audio.sh' "$all" ||
   fail "Apple Silicon audio setup runs during hardware setup"
 [[ -n $migration ]] || fail "existing Apple Silicon installs get the audio repair"
 pass "fresh and existing installs are wired to Apple Silicon audio setup"
@@ -53,6 +53,20 @@ fi
 exit 0
 SH
 
+cat >"$stub_bin/sudo" <<'SH'
+#!/bin/bash
+
+"$@"
+SH
+
+cat >"$stub_bin/systemctl" <<'SH'
+#!/bin/bash
+
+printf 'systemctl' >>"$TEST_LOG"
+printf '\t%s' "$@" >>"$TEST_LOG"
+printf '\n' >>"$TEST_LOG"
+SH
+
 cat >"$stub_bin/omarchy-state" <<'SH'
 #!/bin/bash
 
@@ -80,7 +94,7 @@ run_audio_setup() {
 : >"$calls"
 run_audio_setup "$leaf" aarch64 apple,j413
 
-expected_call=$'omarchy-pkg-add\tpipewire-pulse\tpipewire-alsa\tasahi-audio'
+expected_call=$'omarchy-pkg-add\tpipewire-pulse\tpipewire-alsa\tasahi-audio\tspeakersafetyd'
 grep -Fxq "$expected_call" "$calls" ||
   fail "fresh Apple Silicon installs get the complete protected audio stack" "$(cat "$calls")"
 pass "fresh Apple Silicon installs get the complete protected audio stack"
@@ -109,20 +123,20 @@ pass "the migration repairs existing Apple Silicon installs idempotently"
 rm -f "$installed_marker"
 : >"$calls"
 errors="$test_tmp/errors.log"
-if run_audio_setup "$leaf" aarch64 apple,j413 0 2>"$errors"; then
-  fail "fresh setup fails when a required audio package remains unavailable"
-fi
+run_audio_setup "$leaf" aarch64 apple,j413 0 2>"$errors" ||
+  fail "an incomplete install does not abort hardware setup" "$(cat "$errors")"
 grep -Fq 'protected Asahi audio stack is incomplete' "$errors" ||
   fail "fresh setup explains the incomplete audio stack" "$(cat "$errors")"
 
 : >"$calls"
 : >"$errors"
-if run_audio_setup "$migration" aarch64 apple,j413 0 2>"$errors"; then
-  fail "the migration retries when a required audio package remains unavailable"
-fi
+run_audio_setup "$migration" aarch64 apple,j413 0 2>"$errors" ||
+  fail "an incomplete install does not abort the migration" "$(cat "$errors")"
 grep -Fq 'protected Asahi audio stack is incomplete' "$errors" ||
-  fail "the failed migration explains the incomplete audio stack" "$(cat "$errors")"
-pass "an incomplete package install fails fresh setup and migration"
+  fail "the migration explains the incomplete audio stack" "$(cat "$errors")"
+! grep -Fq 'reboot-required' "$calls" ||
+  fail "an incomplete install does not ask for a pointless reboot" "$(cat "$calls")"
+pass "an incomplete package install warns instead of aborting"
 
 rm -f "$installed_marker"
 : >"$calls"

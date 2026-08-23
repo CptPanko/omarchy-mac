@@ -3,7 +3,7 @@ echo "Install the protected Asahi audio stack on Apple Silicon"
 # Fresh installs run this leaf from omarchy-apply-hardware. Reuse it here so
 # existing installs get the same hardware gate and package set. The package
 # check makes this safe when another user has already repaired the machine.
-audio_setup="$OMARCHY_PATH/install/hardware/apple/asahi-audio.sh"
+audio_setup="$OMARCHY_PATH/install/hardware/apple/audio.sh"
 [[ -f $audio_setup ]] || exit 0
 
 source "$audio_setup"
