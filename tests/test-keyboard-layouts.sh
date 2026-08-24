@@ -40,8 +40,12 @@ pick() {
   local selection="$1"
   rm -rf "$WORK/bin"
   mkdir -p "$WORK/bin"
+  # The prompt pipes the layout list into gum, so the stub has to drain stdin:
+  # exiting first kills cut with SIGPIPE, and pipefail reads that as a failed
+  # prompt, which returns before any of the variables below are set.
   cat >"$WORK/bin/gum" <<STUB
 #!/bin/bash
+cat >/dev/null
 printf '%s\n' '$selection'
 STUB
   chmod +x "$WORK/bin/gum"
