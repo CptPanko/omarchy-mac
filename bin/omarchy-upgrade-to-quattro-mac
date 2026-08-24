@@ -134,6 +134,26 @@ switch_checkout_to_quattro() {
   git -C "$checkout" merge --ff-only "origin/$upgrade_ref"
 }
 
+# A 3.x machine's /etc/pacman.conf predates the [omarchy-aarch64] repo. Without
+# it, every Quattro package that the ARM repo serves as a prebuilt binary
+# resolves to an hours-long AUR build instead -- quickshell-git's build even
+# fails outright on Wayland-only systems whose GL stack predates the upgrade
+# (#208). Mirrors install.sh's ensure_arm_package_repo; must run before
+# install_quattro_packages.
+ensure_arm_package_repo() {
+  grep -q '^\[omarchy-aarch64\]' /etc/pacman.conf && return 0
+
+  local block
+  block=$(sed -n '/^\[omarchy-aarch64\]/,/^Server[[:space:]]*=/p' \
+    "$checkout/default/pacman/pacman-stable.conf")
+  [[ -n $block ]] || fail "default/pacman/pacman-stable.conf has no [omarchy-aarch64] section."
+
+  log "Adding the Omarchy ARM package repo"
+  printf '\n%s\n' "$block" | sudo tee -a /etc/pacman.conf >/dev/null
+  sudo pacman -Sy --noconfirm >/dev/null 2>&1 ||
+    warn "Could not refresh package databases after adding the ARM repo."
+}
+
 install_quattro_packages() {
   local package skipped=()
 
@@ -276,6 +296,7 @@ switch_to_networkmanager() {
 main() {
   backup_user_config
   switch_checkout_to_quattro
+  ensure_arm_package_repo
   install_quattro_packages
   wire_system_paths
   update_bashrc
