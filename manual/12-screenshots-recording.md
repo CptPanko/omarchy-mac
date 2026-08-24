@@ -13,13 +13,13 @@ keyboards also have direct F-key alternatives:
 | `Super + Ctrl + Print Screen` | Extract text from a region |
 | `Super + Ctrl + C` | Capture menu |
 | `Super + Ctrl + .` | Transcode a picture or video |
-| `Super + Fn + F10` | Screenshot a window on an Apple keyboard |
-| `Super + Fn + F11` | Screenshot a region on an Apple keyboard |
-| `Super + Fn + F12` | Screenshot the full display on an Apple keyboard |
-| `Super + Alt + Fn + F12` | Start/stop fullscreen recording without audio on an Apple keyboard |
+| `Super + F10` | Screenshot a window on an Apple keyboard |
+| `Super + F11` | Screenshot a region on an Apple keyboard |
+| `Super + F12` | Screenshot the full display on an Apple keyboard |
+| `Super + Alt + F12` | Start/stop fullscreen recording without audio on an Apple keyboard |
 
-Omarchy configures the top row on Apple keyboards as media keys. Hold `Fn` in
-these shortcuts so the keys emit F10-F12.
+Omarchy configures the top row on Apple keyboards as media keys, and binds both
+the media keycodes and F10-F12. These shortcuts work with or without `Fn`.
 
 ## Screenshots
 
@@ -48,8 +48,8 @@ The arrows and Tab move the cursor to the window they pick, so the highlight fol
 
 `Alt + Print Screen` opens _Trigger > Capture > Screenrecord_, which asks what you want on the soundtrack: no audio, desktop audio, desktop plus microphone, or desktop plus microphone plus webcam. That last one only shows up if you actually have a camera plugged in. Pick one and you get the same picker as a screenshot: drag a region, or click a window or monitor.
 
-On Apple Silicon, `Super + Alt + Fn + F12` starts a fullscreen recording
-immediately without audio. The same hotkey stops it.
+On Apple Silicon, `Super + Alt + F12` starts a fullscreen recording immediately
+without audio. The same hotkey stops it, and holding `Fn` works too.
 
 Recording normally runs on gpu-screen-recorder, which encodes on the GPU at
 60fps and falls back to the CPU if it has to. On Apple Silicon it uses

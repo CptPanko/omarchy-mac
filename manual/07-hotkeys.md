@@ -145,10 +145,10 @@ Usually on Linux, you need `Ctrl + Shift + C/V` to copy'n'paste in the terminal 
 | `Alt + Print Screen`            | Screenrecord                     |
 | `Super + Print Screen` | Color picker |
 | `Super + Ctrl + Print Screen` | Text extraction to clipboard |
-| `Super + Fn + F12` | Screenshot full display on Apple keyboards |
-| `Super + Fn + F11` | Screenshot region on Apple keyboards |
-| `Super + Fn + F10` | Screenshot window on Apple keyboards |
-| `Super + Alt + Fn + F12` | Start/stop fullscreen recording without audio on Apple keyboards |
+| `Super + F12` | Screenshot full display on Apple keyboards |
+| `Super + F11` | Screenshot region on Apple keyboards |
+| `Super + F10` | Screenshot window on Apple keyboards |
+| `Super + Alt + F12` | Start/stop fullscreen recording without audio on Apple keyboards |
 | `Super + Alt + [` | Make webcam overlay smaller while recording |
 | `Super + Alt + ]` | Make webcam overlay larger while recording |
 | `Alt + Shift + L` | Copy current URL from webapp or Chromium |
@@ -161,10 +161,8 @@ recording. The Apple-specific fullscreen hotkey starts immediately without
 audio. Hit the same hotkey again to stop. See [screenshots and
 recording](12-screenshots-recording.md) for the details.
 
-Apple keyboards use their top row for media controls by default. Hold `Fn` in
-the Apple-specific shortcuts above so the keys emit F10-F12. The keybindings
-viewer omits `Fn` because the keyboard driver handles it before Hyprland sees
-the key.
+Apple keyboards use their top row for media controls by default. The
+Apple-specific shortcuts above work whether or not you hold `Fn`.
 
 All capture options are also accessible under _Trigger > Capture_ in the Omarchy menu (`Super + Space`).
 

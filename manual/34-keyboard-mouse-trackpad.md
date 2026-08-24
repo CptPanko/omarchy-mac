@@ -41,7 +41,8 @@ You can [see all the input options](https://wiki.hypr.land/Configuring/Basics/Va
 
 On an Apple keyboard, Command is the `Super` key used throughout this manual.
 The top row behaves as it does in macOS: press a key by itself for its media
-function, or hold `Fn` to send F1-F12.
+function, or hold `Fn` to send F1-F12. Omarchy binds its Mac-specific capture
+shortcuts to both forms, so `Fn` is optional for those combinations.
 
 The Mac-specific brightness and capture combinations are listed in
 [Hotkeys](07-hotkeys.md).
