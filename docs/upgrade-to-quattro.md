@@ -42,7 +42,7 @@ retires the old one.
 ## Run the upgrade
 
 ```bash
-curl -fsSL https://codeberg.org/malik-na/omarchy-mac/raw/branch/quattro/bin/omarchy-upgrade-to-quattro-mac | bash
+curl -fsSL https://raw.githubusercontent.com/omarchy-mac/omarchy-mac/quattro/bin/omarchy-upgrade-to-quattro-mac | bash
 ```
 
 The script confirms before it changes anything, asks for your sudo password
@@ -53,7 +53,8 @@ while — Quickshell and a few other AUR packages are compiled on the machine.
 
 1. Backs up `~/.config` to `~/.config.omarchy3.<timestamp>.bak`.
 2. Switches `~/.local/share/omarchy` to the `quattro` branch (it refuses to run
-   if the checkout has uncommitted changes).
+   if the checkout has uncommitted changes, and refuses to continue unless the
+   checked-out tree is a Quattro one).
 3. Installs the Quattro package set from `install/omarchy-base.packages` with
    yay, skipping the few upstream packages that are x86-only, and installs
    `wf-recorder` — Apple GPUs cannot run gpu-screen-recorder, so screen
