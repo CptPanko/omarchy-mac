@@ -11,6 +11,7 @@ mkdir -p "$tmp_dir/bin"
 mkdir -p "$tmp_dir/power/BAT0"
 printf '900000\n' >"$tmp_dir/power/BAT0/current_now"
 printf '12000000\n' >"$tmp_dir/power/BAT0/voltage_now"
+printf '312\n' >"$tmp_dir/power/BAT0/cycle_count"
 cat >"$tmp_dir/bin/upower" <<'STUB'
 #!/bin/bash
 
@@ -43,6 +44,7 @@ grep -Fx $'state\tdischarging' <<<"$shell_output" >/dev/null || fail "battery st
 grep -Fx $'rate\t10.8W' <<<"$shell_output" >/dev/null || fail "battery status reports live sysfs power rate"
 grep -Fx $'size\t56Wh' <<<"$shell_output" >/dev/null || fail "battery status reports full capacity"
 grep -Fx $'time\t2h 30m' <<<"$shell_output" >/dev/null || fail "battery status reports remaining time"
+grep -Fx $'cycles\t312' <<<"$shell_output" >/dev/null || fail "battery status reports charge cycles"
 
 
 # Apple Silicon names the device macsmc-battery, with no uppercase BAT
@@ -54,6 +56,7 @@ trap 'rm -rf "$tmp_dir" "$asahi_dir"' EXIT
 mkdir -p "$asahi_dir/bin" "$asahi_dir/power/macsmc-battery"
 printf '1500000\n' >"$asahi_dir/power/macsmc-battery/power_now"
 printf '80\n' >"$asahi_dir/power/macsmc-battery/charge_control_end_threshold"
+printf '405\n' >"$asahi_dir/power/macsmc-battery/cycle_count"
 cat >"$asahi_dir/bin/upower" <<'STUB'
 #!/bin/bash
 
@@ -87,6 +90,7 @@ grep -Fx $'percentage\t88%' <<<"$asahi_output" >/dev/null || fail "Apple Silicon
 grep -Fx $'size\t69Wh' <<<"$asahi_output" >/dev/null || fail "Apple Silicon capacity is read"
 grep -Fx $'rate\t1.5W' <<<"$asahi_output" >/dev/null || fail "Apple Silicon rate comes from its own sysfs"
 grep -Fx $'threshold\t80%' <<<"$asahi_output" >/dev/null || fail "Apple Silicon charge threshold is read"
+grep -Fx $'cycles\t405' <<<"$asahi_output" >/dev/null || fail "Apple Silicon charge cycles are read"
 
 pass "battery status reads an Apple Silicon battery"
 
