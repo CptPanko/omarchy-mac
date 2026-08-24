@@ -29,7 +29,9 @@ battery=$(upower -e 2>/dev/null | grep -iE '/devices/battery' | head -n 1)
 
 battery_info=$(upower -i "$battery")
 
-percentage=$(awk '/percentage/ { print int($2); exit }' <<<"$battery_info")
+# Round half-up to match the bar widget, which shows Math.round of the same
+# UPower value -- truncating here made the panel differ from the bar by 1%.
+percentage=$(awk '/percentage/ { printf "%d", $2 + 0.5; exit }' <<<"$battery_info")
 capacity=$(awk '/energy-full:/ { printf "%d", $2; exit }' <<<"$battery_info")
 time_remaining=$(awk '/time to (empty|full)/ {
   value = $4
