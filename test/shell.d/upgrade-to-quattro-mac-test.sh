@@ -110,3 +110,24 @@ doc_url=$(grep -oE 'https://[^ ]*omarchy-upgrade-to-quattro-mac' "$ROOT/docs/upg
   fail "the upgrade one-liner agrees between script and guide" "script: $script_url
 doc:    $doc_url"
 pass "the upgrade one-liner agrees between the script and the guide"
+
+# Issue #208: the package pass attempted every name in the default set, so a 3.x
+# machine spent hours on AUR builds install.sh deliberately skips -- and one of
+# them, quickshell-git, fails outright on the pre-upgrade GL stack.
+install_body=$(function_body install_quattro_packages)
+[[ -n $install_body ]] || fail "the Mac Quattro upgrade has an install_quattro_packages step"
+
+[[ $install_body == *package_is_unavailable_here* ]] ||
+  fail "the upgrade filters the package set through the aarch64 unavailable list"
+grep -qF 'OMARCHY_TRY_UNAVAILABLE' "$upgrade_to_quattro_mac" ||
+  fail "the unavailable list stays overridable on the upgrade path"
+pass "the upgrade filters the package set through the aarch64 unavailable list"
+
+# Skipping quickshell-git is only safe where something else provides Quickshell.
+# A packaged install gets it as a dependency of the omarchy package; this layout
+# installs no such package, so the upgrade has to name the prebuilt one.
+if grep -qxF 'quickshell-git' "$ROOT/install/omarchy-aarch64-unavailable.packages"; then
+  grep -qE 'yay -S --needed --noconfirm quickshell( |$)' <<<"$install_body" ||
+    fail "the upgrade installs the prebuilt quickshell when quickshell-git is skipped"
+  pass "the upgrade installs the prebuilt quickshell when quickshell-git is skipped"
+fi
