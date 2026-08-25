@@ -39,6 +39,11 @@ fail() {
   exit 1
 }
 
+# Asahi Alarm ships LANG=C, and nothing else in the install path replaces it.
+ensure_utf8_locale() {
+  source "$checkout/install/preflight/locale.sh"
+}
+
 ensure_gum() {
   command -v gum >/dev/null 2>&1 && return 0
 
@@ -249,6 +254,7 @@ snapshot_factory_baseline() {
 
 main() {
   check_preconditions
+  ensure_utf8_locale
   ensure_gum
   ensure_aur_helper
   ensure_package_sources
