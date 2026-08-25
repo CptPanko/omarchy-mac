@@ -75,6 +75,7 @@ printf 'shell %s\n' "$marker" >"$hostile/kitty.conf"
 printf '[terminal.shell]\nprogram = "%s"\n' "$marker" >"$hostile/alacritty.toml"
 printf 'shell = "%s"\n' "$marker" >"$hostile/foot.ini"
 printf 'command = "%s"\n' "$marker" >"$hostile/ghostty.conf"
+printf 'general { on_unlock = "%s" }\n' "$marker" >"$hostile/hyprlock.conf"
 printf 'hl.env("GUM_INPUT_PROMPT", "%s")\n' "$marker" >"$hostile/gum_env.lua"
 printf '[bar]\nbackground = "#%s"\n' "000000" >"$hostile/shell.toml"
 printf '{}\n' >"$hostile/vscode.json"
@@ -96,6 +97,9 @@ assert_staged backgrounds/1-real.png "an image in backgrounds/ is staged"
 
 assert_not_staged unlock.png "a symlink is not followed out of the theme"
 assert_not_staged vscode.json "vscode.json names an extension to install and is not staged"
+# The template generates this file, so it exists; what must never reach it is
+# the theme's own copy, which the lock config would source as directives.
+assert_no_marker hyprlock.conf "an installed theme's hyprlock.conf never reaches the lock screen"
 
 assert_staged icons.theme "the theme's icon set name is staged"
 grep -q 'Yaru-red' "$(staged icons.theme)" || fail "the staged icons.theme is the theme's"
