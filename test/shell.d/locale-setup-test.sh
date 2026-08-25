@@ -68,12 +68,26 @@ run_leaf C
 /usr/bin/grep -qx 'locale-gen' "$calls" || fail "the locale is generated" "$(cat "$calls")"
 pass "a stock LANG=C machine gets en_US.UTF-8"
 
-# Someone who chose their own UTF-8 locale keeps it, and nothing is rebuilt.
-printf 'LANG=en_DK.UTF-8\n' >"$locale_conf"
-run_leaf "C en_DK.utf8"
-/usr/bin/grep -qx 'LANG=en_DK.UTF-8' "$locale_conf" || fail "an existing UTF-8 locale is left alone" "$(cat "$locale_conf")"
-[[ ! -s $calls ]] || fail "an existing UTF-8 locale is not regenerated" "$(cat "$calls")"
-pass "a machine already on UTF-8 is left alone"
+# Only the stock state is repaired. Every named locale is somebody's choice --
+# including C.UTF-8, and including one that is not UTF-8 at all.
+for chosen in en_DK.UTF-8 C.UTF-8 en_US.ISO-8859-1; do
+  printf 'LANG=%s\n' "$chosen" >"$locale_conf"
+  run_leaf "C en_DK.utf8 C.utf8"
+  /usr/bin/grep -qx "LANG=$chosen" "$locale_conf" || fail "a chosen locale is left alone" "$chosen -> $(cat "$locale_conf")"
+  [[ ! -s $calls ]] || fail "a chosen locale is not regenerated" "$chosen: $(cat "$calls")"
+done
+pass "a machine with a chosen locale is left alone"
+
+# POSIX is the same stock state under another name, and a missing file means
+# the system never had one set.
+printf 'LANG=POSIX\n' >"$locale_conf"
+run_leaf C
+/usr/bin/grep -qx 'LANG=en_US.UTF-8' "$locale_conf" || fail "a POSIX locale is repaired" "$(cat "$locale_conf")"
+
+rm -f "$locale_conf"
+run_leaf C
+/usr/bin/grep -qx 'LANG=en_US.UTF-8' "$locale_conf" || fail "a machine with no locale.conf is repaired" "$(cat "$locale_conf" 2>&1)"
+pass "POSIX and an absent locale.conf count as stock"
 
 # Already generated, just not selected: set it without a rebuild.
 printf 'LANG=C\n' >"$locale_conf"

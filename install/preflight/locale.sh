@@ -6,11 +6,19 @@
 locale_conf="${OMARCHY_LOCALE_CONF:-/etc/locale.conf}"
 locale_gen="${OMARCHY_LOCALE_GEN:-/etc/locale.gen}"
 
-# Already on a UTF-8 locale, whichever one: leave the user's choice alone.
-if [[ -f $locale_conf ]] && grep -qiE '^LANG=.*(utf-?8)' "$locale_conf"; then
-  echo "Locale is already UTF-8 ($(sed -n 's/^LANG=//p' "$locale_conf" | head -1))"
-  return 0 2>/dev/null || exit 0
-fi
+# Repair only the stock state -- an unset LANG, or the bare C/POSIX the image
+# ships. Any named locale is somebody's choice, C.UTF-8 included, so leave it.
+# A machine with no locale.conf at all reads as unset, not as a failure:
+# under pipefail the missing file would otherwise abort the installer.
+current=$(sed -n 's/^LANG=//p' "$locale_conf" 2>/dev/null | tail -1 | tr -d '"') || current=""
+
+case ${current:-C} in
+  C | POSIX) ;;
+  *)
+    echo "Leaving the locale as $current"
+    return 0 2>/dev/null || exit 0
+    ;;
+esac
 
 if (( ${EUID:-$(id -u)} == 0 )); then
   as_root=()
