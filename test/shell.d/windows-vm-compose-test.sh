@@ -14,6 +14,23 @@ TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 export OMARCHY_WINDOWS_DIR="$TMPDIR/win"
 
+# The Mac fork's omarchy-windows-vm refuses aarch64 and exits, which would take
+# this test with it when sourced. The compose writer it pins is architecture
+# blind, so answer the gate rather than lose the coverage on Apple Silicon.
+stub_bin="$TMPDIR/bin"
+mkdir -p "$stub_bin"
+cat >"$stub_bin/uname" <<'SH'
+#!/bin/bash
+
+if [[ ${1:-} == "-m" ]]; then
+  echo x86_64
+else
+  exec /usr/bin/uname "$@"
+fi
+SH
+chmod +x "$stub_bin/uname"
+PATH="$stub_bin:$PATH"
+
 # Source the command's functions; the dispatcher just prints usage for "help".
 set -- help
 source "$ROOT/bin/omarchy-windows-vm" >/dev/null 2>&1

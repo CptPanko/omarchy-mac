@@ -206,7 +206,10 @@ pass "a theme name cannot climb out of the theme directories"
 # A denylist is only correct while someone adding a template classifies what it
 # generates. Every generated theme file is either denied to an installed theme or
 # recorded here as carrying colour, so a new template fails until it is placed.
-denied=(alacritty.toml foot.ini ghostty.conf kitty.conf gum_env.lua hyprland.lua neovim.lua vscode.json)
+# hyprlock.conf carries only colour, but it is `source`d by the lock screen's
+# own config, so anything in it becomes lock-screen configuration. An installed
+# theme must not be able to contribute that file.
+denied=(alacritty.toml foot.ini ghostty.conf kitty.conf gum_env.lua hyprland.lua hyprlock.conf neovim.lua vscode.json)
 colour_only=(btop.theme chromium.theme claude.json helix.toml hyprland-preview-share-picker.css keyboard.rgb obsidian.css pi.json shell.toml vscode-theme.json)
 
 for tpl in "$ROOT"/default/themed/*.tpl; do
