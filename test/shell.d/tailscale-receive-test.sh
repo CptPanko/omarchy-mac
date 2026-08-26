@@ -91,6 +91,37 @@ grep -q "^Received photo-1.png " <<<"$notifications" ||
   fail "taildrop receive keeps both files on a name clash" "$notifications"
 pass "taildrop receive keeps both files on a name clash"
 
+# ln treats an existing directory as a container unless the name is rejected
+# before the link. The received file must get the numbered name beside it, not
+# disappear inside a directory that happens to share its filename.
+mkdir -p "$downloads/album.png"
+printf 'png' >"$WORKDIR/outbox/album.png"
+receive 1 env
+
+[[ -f $downloads/album-1.png && ! -e "$downloads/album.png/album.png" ]] ||
+  fail "taildrop receive does not put a file inside a same-named directory" "$(find "$downloads/album.png" -maxdepth 2 -print)"
+pass "taildrop receive skips a same-named directory"
+
+# -e follows symlinks, so a dangling link is another occupied name that has to
+# be treated as a collision rather than leaving the transfer in staging.
+ln -s ./missing-target "$downloads/dangling.txt"
+printf 'text' >"$WORKDIR/outbox/dangling.txt"
+receive 1 env
+
+[[ -f $downloads/dangling-1.txt && -L $downloads/dangling.txt ]] ||
+  fail "taildrop receive skips a dangling same-named symlink" "$(find "$downloads" -maxdepth 2 -name 'dangling*' -print)"
+pass "taildrop receive skips a dangling same-named symlink"
+
+# find's default newline delimiter splits a legal filename into two paths and
+# strands the staged file. The receiver has to enumerate the inbox by NUL.
+newline_name=$'line\nbreak.txt'
+printf 'text' >"$WORKDIR/outbox/$newline_name"
+receive 1 env
+
+[[ -f "$downloads/$newline_name" ]] ||
+  fail "taildrop receive preserves filenames containing newlines" "$(find "$downloads/.omarchy-taildrop" -maxdepth 1 -print)"
+pass "taildrop receive preserves filenames containing newlines"
+
 grep -q "browser-download.iso" <<<"$notifications" &&
   fail "taildrop receive ignores downloads that arrive while it waits" "$notifications"
 pass "taildrop receive ignores downloads that arrive while it waits"
