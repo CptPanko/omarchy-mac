@@ -6,6 +6,8 @@
 
 set -euo pipefail
 
+steam_root="$HOME/.local/share/Steam"
+
 write_steam_desktop() {
   local app_dir="$HOME/.local/share/applications"
   mkdir -p "$app_dir"
@@ -22,8 +24,19 @@ MimeType=x-scheme-handler/steam;x-scheme-handler/steamlink;
 EOF
 }
 
+steam_client_ready() {
+  [[ -f $steam_root/steamui.so && -d $steam_root/steamui ]]
+}
+
+launch_fex_steam() {
+  local launcher="$1"
+  shift
+
+  exec muvm -- FEXBash -c 'exec "$@"' omarchy-steam "$launcher" "$@"
+}
+
 patch_steam_ui() {
-  local steamui="$HOME/.local/share/Steam/steamui"
+  local steamui="$steam_root/steamui"
   [[ -d $steamui ]] || return 0
 
   python3 - "$steamui" <<'PY'
@@ -74,12 +87,23 @@ if [[ ${1:-} == --prepare ]]; then
 fi
 
 if [[ $(uname -m) == aarch64 ]] && omarchy-cmd-present muvm && omarchy-cmd-present FEXBash; then
-  prepare_asahi
   launcher="$HOME/.local/share/fex-steam/steam-launcher/bin_steam.sh"
-  extra="-cef-force-occlusion -noverifyfiles -nobootstrapupdate -skipinitialbootstrap -norepairfiles"
 
   if [[ -f $launcher ]]; then
-    exec muvm -- FEXBash -c "$launcher $extra $*"
+    steam_args=(-cef-force-occlusion)
+    if steam_client_ready; then
+      prepare_asahi
+      steam_args+=(
+        -noverifyfiles
+        -nobootstrapupdate
+        -skipinitialbootstrap
+        -norepairfiles
+      )
+    else
+      write_steam_desktop
+    fi
+
+    launch_fex_steam "$launcher" "${steam_args[@]}" "$@"
   fi
 fi
 
