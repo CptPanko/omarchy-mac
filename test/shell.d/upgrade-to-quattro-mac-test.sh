@@ -111,6 +111,22 @@ doc_url=$(grep -oE 'https://[^ ]*omarchy-upgrade-to-quattro-mac' "$ROOT/docs/upg
 doc:    $doc_url"
 pass "the upgrade one-liner agrees between the script and the guide"
 
+# A pre-existing ARM repo stanza does not prove its sync database is current;
+# stale metadata turns the later package phase into confusing 404s. Refreshing
+# must therefore happen on both the add and already-present paths, and failure
+# must stop before package installation rather than being downgraded to a warn.
+repo_body=$(function_body ensure_arm_package_repo)
+[[ $repo_body != *'grep -q '\''^\[omarchy-aarch64\]'\'' /etc/pacman.conf && return 0'* ]] ||
+  fail "the Quattro upgrade refreshes an already-configured ARM repo"
+grep -F 'sudo pacman -Sy --noconfirm' <<<"$repo_body" >/dev/null ||
+  fail "the Quattro upgrade refreshes ARM package databases"
+grep -F 'fail "Could not refresh package databases.' <<<"$repo_body" >/dev/null ||
+  fail "the Quattro upgrade stops when the ARM package database cannot refresh"
+if grep -F 'Could not refresh package databases after adding the ARM repo' <<<"$repo_body" >/dev/null; then
+  fail "the Quattro upgrade does not continue on a failed ARM database refresh"
+fi
+pass "the Quattro upgrade refreshes and validates ARM package databases"
+
 # Issue #208: the package pass attempted every name in the default set, so a 3.x
 # machine spent hours on AUR builds install.sh deliberately skips -- and one of
 # them, quickshell-git, fails outright on the pre-upgrade GL stack.
