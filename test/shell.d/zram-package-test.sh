@@ -37,6 +37,17 @@ STUB
 
 chmod +x "$stub_bin"/*
 
+assert_systemd_start_follows_reload() {
+  local reload_line start_line
+
+  reload_line=$(awk '$0 == "systemctl daemon-reload" { print NR; exit }' "$calls")
+  start_line=$(awk '$0 == "systemctl start systemd-zram-setup@zram0.service" { print NR; exit }' "$calls")
+  [[ -n $reload_line && -n $start_line ]] ||
+    fail "the zram migration records both systemd calls"
+  (( reload_line < start_line )) ||
+    fail "the zram migration reloads systemd before starting zram"
+}
+
 run_migration() {
   : >"$calls"
   PATH="$stub_bin:$PATH" TEST_LOG="$calls" \
@@ -52,6 +63,7 @@ grep -Fx 'systemctl daemon-reload' "$calls" >/dev/null ||
   fail "the zram migration reloads systemd after installing zram-generator"
 grep -Fx 'systemctl start systemd-zram-setup@zram0.service' "$calls" >/dev/null ||
   fail "the zram migration starts the configured zram device"
+assert_systemd_start_follows_reload
 pass "the zram migration repairs an existing install without zram-generator"
 
 run_migration 0
@@ -59,4 +71,5 @@ run_migration 0
   fail "the zram migration does not reinstall an existing zram-generator"
 grep -Fx 'systemctl start systemd-zram-setup@zram0.service' "$calls" >/dev/null ||
   fail "the zram migration starts zram when the package is already installed"
+assert_systemd_start_follows_reload
 pass "the zram migration is idempotent"

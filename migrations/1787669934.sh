@@ -1,5 +1,3 @@
-#!/bin/bash
-
 echo "Ensure zram-generator is installed for configured zram swap"
 
 if omarchy-pkg-missing zram-generator; then
