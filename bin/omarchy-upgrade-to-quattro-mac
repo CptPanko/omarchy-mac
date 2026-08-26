@@ -224,12 +224,6 @@ install_quattro_packages() {
     fi
   done < <(grep -vE '^\s*(#|$)' "$checkout/install/omarchy-base.packages")
 
-  # A packaged install gets Quickshell as a dependency of the omarchy package,
-  # which this layout never installs, and quickshell-git is skipped above. Arch
-  # Linux ARM ships a prebuilt quickshell, so ask for that instead (#208).
-  yay -S --needed --noconfirm quickshell </dev/null ||
-    fail "Could not install quickshell, which the Quattro shell needs. Is Arch Linux ARM's extra repo reachable?"
-
   # Apple GPUs cannot run gpu-screen-recorder; screen recording falls back to wf-recorder.
   yay -S --needed --noconfirm wf-recorder </dev/null
 
