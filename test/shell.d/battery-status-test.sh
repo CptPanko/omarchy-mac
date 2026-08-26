@@ -92,6 +92,46 @@ grep -Fx $'rate\t1.5W' <<<"$asahi_output" >/dev/null || fail "Apple Silicon rate
 grep -Fx $'threshold\t80%' <<<"$asahi_output" >/dev/null || fail "Apple Silicon charge threshold is read"
 grep -Fx $'cycles\t405' <<<"$asahi_output" >/dev/null || fail "Apple Silicon charge cycles are read"
 
+# Display rounding is half-up to match the bar widget, but the charge-hold
+# check must compare UPower's raw percentage: 79.5% displays as 80%, and an
+# 80% hold threshold must not trip while the raw value is still below it.
+hold_dir=$(mktemp -d)
+trap 'rm -rf "$tmp_dir" "$asahi_dir" "$hold_dir"' EXIT
+
+mkdir -p "$hold_dir/bin" "$hold_dir/power/macsmc-battery" "$hold_dir/power/ac"
+printf 'Mains\n' >"$hold_dir/power/ac/type"
+printf '1\n' >"$hold_dir/power/ac/online"
+printf '80\n' >"$hold_dir/power/macsmc-battery/charge_control_end_threshold"
+cat >"$hold_dir/bin/upower" <<'STUB'
+#!/bin/bash
+
+if [[ $1 == "-e" ]]; then
+  echo "/org/freedesktop/UPower/devices/battery_macsmc_battery"
+  exit 0
+fi
+
+if [[ $1 == "-i" ]]; then
+  cat <<'INFO'
+  native-path:          macsmc-battery
+  state:                charging
+  energy-full:          69.6 Wh
+  energy-rate:          0.1 W
+  time to full:         0.2 hours
+  percentage:           79.5%
+  charge-end-threshold: 80%
+INFO
+  exit 0
+fi
+
+exit 1
+STUB
+chmod +x "$hold_dir/bin/upower"
+
+hold_output=$(OMARCHY_POWER_SUPPLY_PATH="$hold_dir/power" PATH="$hold_dir/bin:$PATH" "$ROOT/bin/omarchy-battery-status" --shell)
+
+grep -Fx $'percentage\t80%' <<<"$hold_output" >/dev/null || fail "display percentage rounds half-up"
+grep -Fx $'state\tcharging' <<<"$hold_output" >/dev/null || fail "hold threshold compares the raw percentage"
+
 pass "battery status reads an Apple Silicon battery"
 
 if matches=$(rg -n 'omarchy-battery-(capacity|remaining|remaining-time)' "$ROOT/bin" "$ROOT/test" "$ROOT/shell" "$ROOT/docs"); then
