@@ -755,7 +755,7 @@ check "no call site hardcodes a forge host" \
   [ "$(grep -c 'https://codeberg\.org' "$TOOL")" = "0" ]
 
 forge_persists() {
-  grep -qF 'SETUP_FORGE=$forge' "$TOOL" &&
+  grep -qF "printf 'SETUP_FORGE=%q\\n' \"\$forge\"" "$TOOL" &&
     grep -qF 'forge=${SETUP_FORGE:-$forge}' "$TOOL"
 }
 
