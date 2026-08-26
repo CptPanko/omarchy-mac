@@ -174,6 +174,30 @@ fi
   fail "quickshell-git is skipped and nothing installs quickshell: the upgrade leaves no shell"
 pass "the upgrade always ends up with Quickshell installed"
 
+# The default package pass records failures and continues, so the optional
+# Apple recording fallback must do the same. Otherwise a missing ARM build or a
+# transient AUR failure aborts after the checkout and system paths changed,
+# leaving the 3.x machine half-upgraded.
+if ! (
+  checkout="$ROOT"
+  unavailable_packages=()
+  load_unavailable_packages() { unavailable_packages=(); }
+  package_is_unavailable_here() { return 1; }
+  log() { :; }
+  warn() { :; }
+  yay() {
+    [[ $* == *wf-recorder* ]] && return 1
+    return 0
+  }
+  eval "install_quattro_packages() {
+$install_body
+}"
+  install_quattro_packages
+); then
+  fail "the Quattro upgrade continues when wf-recorder is unavailable"
+fi
+pass "the Quattro upgrade continues when wf-recorder is unavailable"
+
 # Every other fatal step reports through fail(); a bare set -e abort here would
 # die silently after the checkout has already been switched.
 if (( installs_quickshell )); then
