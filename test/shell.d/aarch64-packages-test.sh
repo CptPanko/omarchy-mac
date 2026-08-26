@@ -7,6 +7,10 @@ source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/base-test.sh"
 base_packages="$ROOT/install/omarchy-base.packages"
 unavailable="$ROOT/install/omarchy-aarch64-unavailable.packages"
 
+grep -qxF zram-generator "$base_packages" ||
+  fail "fresh installs include zram-generator in the default package set"
+pass "fresh installs include zram-generator in the default package set"
+
 mapfile -t unavailable_packages < <(grep -vE '^[[:space:]]*(#|$)' "$unavailable")
 (( ${#unavailable_packages[@]} )) || fail "the aarch64 unavailable list names at least one package"
 
