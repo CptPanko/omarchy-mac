@@ -61,18 +61,21 @@ find_omarchy_pkgs() {
   return 1
 }
 
-# Drop the limine entries from depends=() without forking the PKGBUILD, so it
-# keeps tracking upstream and only this delta is ours.
 set_pkgrel() {
   local pkgbuild="$1" rel=${OMARCHY_PKGREL:-}
 
+  # Mac hotfixes repackage the same upstream pkgver between tags, so they bump
+  # pkgrel rather than pkgver to stay upgradeable without stealing the next
+  # upstream tag. Unset OMARCHY_PKGREL to keep the PKGBUILD values.
   [[ -n $rel ]] || return 0
-  [[ $rel =~ ^[0-9]+$ ]] || fail "OMARCHY_PKGREL must be a whole number, got: $rel"
+  [[ $rel =~ ^[1-9][0-9]*$ ]] || fail "OMARCHY_PKGREL must be a positive whole number, got: $rel"
   grep -qE '^pkgrel=' "$pkgbuild" || fail "no pkgrel= in $pkgbuild"
   sed -i "s/^pkgrel=.*/pkgrel=$rel/" "$pkgbuild"
   grep -qx "pkgrel=$rel" "$pkgbuild" || fail "could not set pkgrel=$rel in $pkgbuild"
 }
 
+# Drop the limine entries from depends=() without forking the PKGBUILD, so it
+# keeps tracking upstream and only this delta is ours.
 strip_limine_dependencies() {
   local pkgbuild="$1" dependency
 

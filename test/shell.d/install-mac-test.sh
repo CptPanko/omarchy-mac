@@ -54,9 +54,11 @@ if ! (
   [[ $(cat "$rel_dir/PKGBUILD") == "pkgrel=1" ]] || exit 1
   OMARCHY_PKGREL=2 set_pkgrel "$rel_dir/PKGBUILD"
   [[ $(cat "$rel_dir/PKGBUILD") == "pkgrel=2" ]] || exit 1
-  if ( OMARCHY_PKGREL=nope set_pkgrel "$rel_dir/PKGBUILD" >/dev/null 2>&1 ); then
-    exit 1
-  fi
+  for bad in nope 0 02 -1 1.5; do
+    if ( OMARCHY_PKGREL=$bad set_pkgrel "$rel_dir/PKGBUILD" >/dev/null 2>&1 ); then
+      exit 1
+    fi
+  done
 ); then
   rm -rf "$rel_dir"
   fail "set_pkgrel no-ops without OMARCHY_PKGREL, writes a number, and rejects junk"
