@@ -236,8 +236,8 @@ Panel {
     owner: root.barIdentity
     bar: root.bar
     open: root.opened
-    // Mac fork: moved the calendar component to the right,
-    // where the clock plugin is located in the shell.
+    // Anchor the calendar under the clock rather than the middle of the bar,
+    // so it follows wherever the widget is placed.
     centerOnBar: false
     focusTarget: keyCatcher
     contentWidth: panel.fittedContentWidth(Style.space(500))
