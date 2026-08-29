@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# omarchy:summary=Upgrade an Omarchy Mac 3.x install to Quattro
+# omarchy:args=[--yes] [--reboot] [--ref BRANCH]
+# omarchy:requires-sudo=true
+
+# The upgrade itself lives on the quattro branch and changes as that branch
+# does. Fetch it at run time rather than carrying a copy here: a copy on this
+# branch goes stale the moment the real one is fixed, and 3.x users are exactly
+# the people who cannot see that it has.
+set -euo pipefail
+
+url="https://raw.githubusercontent.com/omarchy-mac/omarchy-mac/quattro/bin/omarchy-upgrade-to-quattro-mac"
+script=$(mktemp)
+trap 'rm -f "$script"' EXIT
+
+echo "Fetching the current Quattro upgrade..."
+curl -fsSL "$url" -o "$script" ||
+  { echo "Could not download the upgrade from $url" >&2; exit 1; }
+
+# A proxy or captive portal returns 200 with HTML, which would otherwise reach
+# bash as a pile of syntax errors halfway through a system upgrade.
+head -1 "$script" | grep -q '^#!/bin/bash' ||
+  { echo "Downloaded file is not the upgrade script; refusing to run it." >&2; exit 1; }
+
+bash "$script" "$@"
