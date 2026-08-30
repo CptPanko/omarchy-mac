@@ -86,12 +86,12 @@ pass "the Apple Silicon package hand-off contains only current archives"
 # covered in isolation while retries still mix old and new archives.
 main_body=$(awk '/^main\(\) \{/{inside=1} inside {print} inside && /^}/ {exit}' "$build_script")
 remove_line=$(grep -nF '  remove_old_packages' <<<"$main_body" || true)
-build_loop_line=$(grep -nF '  for package in "${packages[@]}"; do' <<<"$main_body" || true)
-[[ -n $remove_line && -n $build_loop_line ]] ||
+build_call_line=$(grep -nF '    build_package "$package"' <<<"$main_body" || true)
+[[ -n $remove_line && -n $build_call_line ]] ||
   fail "the package build clears old archives before its package loop"
 remove_line=${remove_line%%:*}
-build_loop_line=${build_loop_line%%:*}
-(( remove_line < build_loop_line )) ||
+build_call_line=${build_call_line%%:*}
+(( remove_line < build_call_line )) ||
   fail "the package build clears old archives before its package loop"
 pass "the package build clears old archives before its package loop"
 
