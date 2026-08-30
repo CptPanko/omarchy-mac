@@ -25,7 +25,7 @@ EOF
 }
 
 steam_client_ready() {
-  [[ -f $steam_root/steamui.so && -d $steam_root/steamui ]]
+  [[ -d $steam_root/steamui ]] && compgen -G "$steam_root/*/steamui.so" >/dev/null
 }
 
 launch_fex_steam() {

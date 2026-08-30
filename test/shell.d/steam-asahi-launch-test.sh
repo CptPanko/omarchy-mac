@@ -59,6 +59,17 @@ pass "fresh Steam launches without bootstrap suppression flags"
 
 mkdir -p "$steam_root/steamui"
 touch "$steam_root/steamui.so"
+run_launcher --root-level-only
+
+for suppressed_flag in -noverifyfiles -nobootstrapupdate -skipinitialbootstrap -norepairfiles; do
+  if grep -Fqx -- "$suppressed_flag" "$call_log"; then
+    fail "a root-level steamui.so does not falsely mark Steam as bootstrapped"
+  fi
+done
+pass "a root-level steamui.so does not falsely mark Steam as bootstrapped"
+
+mkdir -p "$steam_root/ubuntu12_32"
+touch "$steam_root/ubuntu12_32/steamui.so"
 run_launcher --existing
 
 for suppressed_flag in -noverifyfiles -nobootstrapupdate -skipinitialbootstrap -norepairfiles; do
