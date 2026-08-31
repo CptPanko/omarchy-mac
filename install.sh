@@ -105,7 +105,12 @@ build_omarchy_packages() {
 install_omarchy_packages() {
   log "Installing the Omarchy packages"
 
-  local built=("$package_output"/*.pkg.tar.*)
+  local artifact
+  local -a built=()
+  for artifact in "$package_output"/*.pkg.tar.*; do
+    [[ -f $artifact && $artifact != *.sig ]] || continue
+    built+=("$artifact")
+  done
   (( ${#built[@]} )) || fail "No packages were built in $package_output."
   sudo pacman -U --needed --noconfirm "${built[@]}"
 
