@@ -194,12 +194,12 @@ mutate_manifest() {
   local fixture="$1" mutation="$2"
   local manifest_path="$fixture/default/system-paths.tsv" temporary="$fixture/default/system-paths.tsv.tmp"
   case "$mutation" in
-  arbitrary-destination)
-    awk -F $'\t' -v source="$first_source" 'BEGIN { OFS = "\t" } $1 == source { $2 = "/usr/lib/omarchy-arbitrary-fixed-path" } { print }' "$manifest_path" >"$temporary"
-    ;;
-  non-zram-omission)
-    awk -F $'\t' -v source="$first_source" 'BEGIN { OFS = "\t" } $1 == source { next } { print }' "$manifest_path" >"$temporary"
-    ;;
+    arbitrary-destination)
+      awk -F $'\t' -v source="$first_source" 'BEGIN { OFS = "\t" } $1 == source { $2 = "/usr/lib/omarchy-arbitrary-fixed-path" } { print }' "$manifest_path" >"$temporary"
+      ;;
+    non-zram-omission)
+      awk -F $'\t' -v source="$first_source" 'BEGIN { OFS = "\t" } $1 == source { next } { print }' "$manifest_path" >"$temporary"
+      ;;
   esac
   mv "$temporary" "$manifest_path"
 }
