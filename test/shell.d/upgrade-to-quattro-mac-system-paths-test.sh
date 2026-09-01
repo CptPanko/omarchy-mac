@@ -128,7 +128,12 @@ non_executable_command_count=0
 for command_path in "$ROOT/bin"/omarchy-*; do
   if [[ -f $command_path && ! -L $command_path ]]; then
     ((command_count += 1))
-    [[ -x $command_path ]] || ((non_executable_command_count += 1))
+    command_relpath=${command_path#"$ROOT"}
+    command_relpath=${command_relpath#/}
+    command_mode=$(git -C "$ROOT" ls-files -s -- "$command_relpath")
+    if [[ ${command_mode%% *} == "100644" ]]; then
+      ((non_executable_command_count += 1))
+    fi
     command_name=${command_path##*/}
     command_target="$fake_root/usr/bin/$command_name"
     [[ -L $command_target ]] || fail "every regular bin command gets a /usr/bin link" "$command_name"
