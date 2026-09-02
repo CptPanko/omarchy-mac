@@ -62,13 +62,13 @@ as_root tar -xzf "$tarball" -C "$WORK/root"
 as_root mkdir -p "$WORK/root/src/omarchy"
 
 nspawn() {
+  # Do not bind-ro /sys: nspawn has to mount its own cgroupfs on
+  # /sys/fs/cgroup, and a host /sys bind makes it refuse to start.
   as_root systemd-nspawn \
-    --quiet \
     --directory="$WORK/root" \
     --machine="$MACHINE" \
+    --register=no \
     --resolv-conf=bind-host \
-    --bind-ro=/sys \
-    --bind-ro="$ROOT:/src/omarchy-ro" \
     --overlay="$ROOT:$WORK/overlay/upper:$WORK/overlay/work:/src/omarchy" \
     --console=pipe \
     "$@"
