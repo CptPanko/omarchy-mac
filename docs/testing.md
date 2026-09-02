@@ -136,3 +136,13 @@ only a live session can prove.
 - **Assert the invariant, not the snapshot.** Config tests pin the property a
   test is named for (this widget stays adjacent to that one) rather than whole
   structures, so unrelated churn does not fail them.
+
+## CI
+
+GitHub Actions (`.github/workflows/main.yml`) runs on every push and pull request. Three jobs run in parallel on `ubuntu-24.04`:
+
+- **syntax** — shebang-aware parse of `bin/omarchy-*`, `bash -n` on tracked `*.sh`, and shellcheck (`--shell=bash -S error`, excluding `migrations/` and test fixtures)
+- **test** — `./test/all` (`./test/cli` and `./test/shell`), with `omacom-io/omarchy-pkgs` checked out for PKGBUILD coverage
+- **mac** — `./tests/all` (Mac-specific suites; root/loop rehearsals skip without privileges)
+
+The graphical acceptance suite is not part of this workflow. Compositor-dependent shell tests skip on the headless runner.
