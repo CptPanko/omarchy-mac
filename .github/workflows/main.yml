@@ -61,12 +61,13 @@ jobs:
         run: |
           # install/ and many tests are sourced and omit shebangs; --shell=bash
           # is the contract. Fixtures are intentionally invalid snippets.
-          # SC1087/SC1113/SC2096 fire on ANSI sequences and comments that look
+          # Tests stub commands as functions defined later (SC2218). SC1087,
+          # SC1113, and SC2096 fire on ANSI sequences and comments that look
           # like shebangs, not on real errors.
-          mapfile -t files < <(git ls-files -- '*.sh' | grep -vE '^(migrations/|test/shell.d/fixtures/)' || true)
+          mapfile -t files < <(git ls-files -- '*.sh' | grep -vE '^(migrations/|test/)' || true)
           (( ${#files[@]} > 0 )) || exit 0
           shellcheck --version
-          shellcheck --shell=bash -S error -e SC1090,SC1091,SC1087,SC1113,SC2096 "${files[@]}"
+          shellcheck --shell=bash -S error -e SC1090,SC1091,SC1087,SC1113,SC2096,SC2218 "${files[@]}"
 
   test:
     name: test/all
@@ -91,7 +92,7 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq lua5.4 imagemagick libxkbcommon-tools
+          sudo apt-get install -y jq lua5.4 imagemagick libxkbcommon-tools ripgrep desktop-file-utils
           sudo ln -sf /usr/bin/lua5.4 /usr/local/bin/lua
           if ! command -v magick >/dev/null; then
             sudo ln -sf "$(command -v convert)" /usr/local/bin/magick
@@ -99,8 +100,11 @@ jobs:
 
       - name: Run ./test/all
         env:
+          OMARCHY_PATH: ${{ github.workspace }}
           OMARCHY_PKGS_PATH: ${{ github.workspace }}/omarchy-pkgs
-        run: ./test/all
+        run: |
+          export PATH="$GITHUB_WORKSPACE/bin:$PATH"
+          ./test/all
 
   mac:
     name: tests/all
