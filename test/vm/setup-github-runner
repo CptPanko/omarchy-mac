@@ -52,16 +52,15 @@ if [[ ! -x $RUNNER_DIR/config.sh ]]; then
 fi
 
 log "configuring runner for $REPO ($LABELS)"
-sudo -u "$RUNNER_USER" "$RUNNER_DIR/config.sh" --unattended --replace \
-  --url "https://github.com/$REPO" \
-  --token "$token" \
-  --name "$(hostname)-install-vm" \
-  --labels "$LABELS" \
-  --work "$RUNNER_HOME/_work"
+sudo -u "$RUNNER_USER" bash -c "cd \"$RUNNER_DIR\" && ./config.sh --unattended --replace \
+  --url \"https://github.com/$REPO\" \
+  --token \"$token\" \
+  --name \"$(hostname)-install-vm\" \
+  --labels \"$LABELS\" \
+  --work \"$RUNNER_HOME/_work\""
 
 log "installing the runner systemd service"
-sudo "$RUNNER_DIR/svc.sh" install "$RUNNER_USER"
-sudo "$RUNNER_DIR/svc.sh" start
+sudo bash -c "cd \"$RUNNER_DIR\" && ./svc.sh install \"$RUNNER_USER\" && ./svc.sh start"
 
 log "runner is up. Confirm it at https://github.com/$REPO/settings/actions/runners"
 log "then run the Install VM workflow from Actions → workflow_dispatch"
