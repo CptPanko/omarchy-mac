@@ -310,8 +310,20 @@ for entry in "${editor_cases[@]}"; do
   micro) name=Micro ;;
   fresh) name=Fresh ;;
   esac
-  tr '\0' '\n' <"$notification_log" | grep -Fq "$name is now the default editor" ||
-    fail "$selection sends a success notification after installation"
+  case $selection in
+  nano | micro | fresh)
+    mapfile -d '' -t notification_args <"$notification_log"
+    ((${#notification_args[@]} == 3)) || fail "$selection sends exactly three notification arguments"
+    [[ ${notification_args[0]} == "-g" ]] || fail "$selection puts -g first in the notification arguments"
+    [[ -n ${notification_args[1]} ]] || fail "$selection sends a nonempty notification glyph"
+    [[ ${notification_args[2]} == "$name is now the default editor" ]] ||
+      fail "$selection sends the exact success notification"
+    ;;
+  *)
+    tr '\0' '\n' <"$notification_log" | grep -Fq "$name is now the default editor" ||
+      fail "$selection sends a success notification after installation"
+    ;;
+  esac
 done
 pass "editor defaults install every missing editor before selection"
 
