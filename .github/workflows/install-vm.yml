@@ -1,0 +1,37 @@
+name: Install VM
+
+# Full install.sh in an isolated Arch Linux ARM machine on a self-hosted
+# Apple Silicon runner. Not on pull_request: a public-repo self-hosted
+# runner must not execute untrusted fork code.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * *"
+
+concurrency:
+  group: install-vm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: install.sh on Arch Linux ARM
+    if: github.repository == 'omarchy-mac/omarchy-mac'
+    runs-on: [self-hosted, linux, ARM64]
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run isolated install
+        run: sudo --preserve-env=HOME ./test/vm/run-install
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-vm-logs
+          path: /var/tmp/omarchy-install-vm/logs/
+          if-no-files-found: ignore
