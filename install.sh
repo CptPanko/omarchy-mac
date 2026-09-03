@@ -91,7 +91,7 @@ ensure_package_sources() {
   else
     log "Cloning the PKGBUILD checkout"
     mkdir -p "$cache_dir"
-    git clone --depth 1 https://github.com/omacom-io/omarchy-pkgs.git "$pkgs_checkout"
+    git clone --depth 1 https://github.com/omacom/omarchy-pkgs.git "$pkgs_checkout"
   fi
 
   export OMARCHY_PKGS_PATH="$pkgs_checkout"
