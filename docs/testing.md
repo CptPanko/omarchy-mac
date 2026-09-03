@@ -151,7 +151,7 @@ The graphical acceptance suite is not part of this workflow. Compositor-dependen
 
 `.github/workflows/install-vm.yml` runs `install.sh` inside an isolated Arch Linux ARM machine on a self-hosted Apple Silicon runner. GitHub-hosted ARM VMs cannot do this: they have no nested KVM, and Asahi Alarm will not boot in QEMU. The host kernel is 16k pages, so the harness uses `systemd-nspawn` (same kernel a real Mac install runs on) rather than a 4k QEMU guest.
 
-It is `workflow_dispatch` plus a nightly schedule, never `pull_request`. A public-repo self-hosted runner must not execute fork PRs.
+It is `workflow_dispatch` plus a nightly schedule, never `pull_request`. A public-repo self-hosted runner must not execute fork PRs. Required labels and disk/sudo notes: [`docs/runner-requirements.md`](runner-requirements.md).
 
 Register this machine once, from a terminal:
 
