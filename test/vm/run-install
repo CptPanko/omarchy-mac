@@ -15,7 +15,6 @@ CACHE="${OMARCHY_INSTALL_VM_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/omarchy-insta
 WORK="${OMARCHY_INSTALL_VM_WORK:-/var/tmp/omarchy-install-vm}"
 TARBALL_URL="${OMARCHY_INSTALL_VM_TARBALL:-http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz}"
 GUEST_USER=ci
-MACHINE=omarchy-install-vm-$$
 KEEP_ROOT=${OMARCHY_INSTALL_VM_KEEP:-0}
 
 log() { printf '\033[32m==>\033[0m %s\n' "$*"; }
@@ -30,13 +29,12 @@ as_root() {
 }
 
 cleanup() {
-  as_root machinectl terminate "$MACHINE" 2>/dev/null || true
   as_root chmod -R a+rX "$WORK/logs" 2>/dev/null || true
   if (( KEEP_ROOT )); then
     log "keeping $WORK/root (OMARCHY_INSTALL_VM_KEEP=1)"
     return 0
   fi
-  as_root rm -rf "$WORK/root" "$WORK/overlay"
+  as_root rm -rf "$WORK/root"
 }
 
 [[ $(uname -m) == "aarch64" ]] || fail "this harness only runs on aarch64"
@@ -46,8 +44,8 @@ command -v curl >/dev/null || fail "curl is required"
 as_root true || fail "root (or passwordless sudo) is required to spawn the machine"
 
 mkdir -p "$CACHE" "$WORK/logs"
-as_root rm -rf "$WORK/root" "$WORK/overlay"
-as_root mkdir -p "$WORK/root" "$WORK/overlay/upper"
+as_root rm -rf "$WORK/root"
+as_root mkdir -p "$WORK/root"
 trap cleanup EXIT
 
 tarball="$CACHE/ArchLinuxARM-aarch64-latest.tar.gz"
@@ -66,11 +64,9 @@ nspawn() {
   # /sys/fs/cgroup, and a host /sys bind makes it refuse to start.
   as_root systemd-nspawn \
     --directory="$WORK/root" \
-    --machine="$MACHINE" \
     --register=no \
     --resolv-conf=bind-host \
-    # Three fields: lower:upper:dest. nspawn derives overlay workdir as a sibling of upper.
-    --overlay="$ROOT:$WORK/overlay/upper:/src/omarchy" \
+    --bind="$ROOT:/src/omarchy" \
     --console=pipe \
     "$@"
 }
